@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>To-Do App with Date & Priority Filter</title>
+  <style>
+    *{
+    margin: 0;
+    padding: 0;
+    font-family: 'poppins', sans-serif;
+    box-sizing: border-box;
+}
+.container{
+width: 100%;
+min-height: 100vh;
+background: linear-gradient(135deg, #922e59, #1468a0);
+padding: 10px;
+}
+.todo-app{
+  max-width: 800px;
+  margin: 0 auto;
+  background: #fff;
+  margin: 100px auto 20px;
+  padding: 40px 30px 70px;
+  border-radius: 10px;
+}
+.todo-app h2{
+    color: #002765;
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.todo-app h2 img {
+    width: 30px;
+    margin-left: 10px;
+}
+.row{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #edeef0;
+    border-radius: 30px;
+    padding-left: 20px;
+    margin-bottom: 25px;
+}
+input{
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 10px;
+}
+button{
+    border: none;
+    outline: none;
+    padding: 16px 50px;
+    background: #f60a0a;
+    color: #fff;
+    font-size: 16;
+    border-radius: 40px;
+    cursor: pointer;
+}
+button:hover {
+    background: #4b2a2a; /* Change to a lighter shade on hover */
+}
+.filter-select {
+    display: block;
+    margin: 10px auto;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+}
+.filter-add{
+    display: block;
+    margin-right: 10px;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+}
+ul li{
+    list-style: none;
+    font-size: 17px;
+    padding: 12px 8px 12px 50px;
+    user-select: none;
+    cursor: pointer; 
+    position: relative;
+}
+ul li::before{
+content: '';
+position: absolute;
+height: 28px;
+width: 28px;
+border-radius: 50%;
+background-image: url(2nd.jpg);
+background-size: cover;
+background-position: center;
+top: 12px;
+left: 8px;
+}
+ul li.checked{
+    color: #555;
+    text-decoration: line-through;
+}
+ul li.checked::before{
+    background-image: url(3rd.jpg);
+}
+ul li span{
+    position:absolute;
+    right:0;
+    top: 5px;
+    width: 40px;
+    height: 40px;
+    font-size: 22px;
+    color: #555;
+    line-height: 40px;
+    text-align: center;
+    border-radius: 50%;
+}
+ul li span:hover{
+    background: #edeef0;
+}
+  </style>
+</head>
+<body>
+      <div class="container">
+<div class="todo-app">
+  <h2>To-Do List <img src="main.jpg" /></h2>
+  <div class="row">
+  <input type="text" id="input-box" placeholder="Add your task">
+  <select id="priority-select"class="filter-add">
+    <option value="low">Low</option>
+    <option value="medium">Medium</option>
+    <option value="high">High</option>
+  </select>
+  <input type="date" id="task-date">
+  <button onclick="addTask()">Add Task</button>
+</div>
+
+  <label>Filter by Priority:</label>
+  <select id="filter-priority">
+    <option value="all">All</option>
+    <option value="low">Low</option>
+    <option value="medium">Medium</option>
+    <option value="high">High</option>
+  </select>
+
+  <label>Filter by Date:</label>
+  <input type="date" id="filter-date">
+
+  <ul id="list-container"></ul>
+</div>
+</div>
+  <script>
+  const inputBox = document.getElementById("input-box");
+  const listContainer = document.getElementById("list-container");
+  const prioritySelect = document.getElementById("priority-select");
+  const taskDateInput = document.getElementById("task-date");
+
+  const filterPriority = document.getElementById("filter-priority");
+  const filterDate = document.getElementById("filter-date");
+
+  function addTask() {
+    const selectedPriority = prioritySelect.value;
+    const taskDate = taskDateInput.value;
+
+    if (inputBox.value.trim() === "") {
+      alert("You must add something");
+    } else {
+      let li = document.createElement("li");
+      li.innerHTML = `${inputBox.value} <small>${taskDate}</small>`;
+      li.classList.add(selectedPriority);
+      li.setAttribute("data-date", taskDate);
+
+      let span = document.createElement("span");
+      span.innerHTML = "\u00d7";
+      li.appendChild(span);
+
+      listContainer.appendChild(li);
+    }
+
+    inputBox.value = "";
+    taskDateInput.value = "";
+    saveData();
+    applyFilters();
+  }
+
+  listContainer.addEventListener("click", function (e) {
+    if (e.target.tagName === "LI") {
+      e.target.classList.toggle("checked");
+      saveData();
+    } else if (e.target.tagName === "SPAN") {
+      e.target.parentElement.remove();
+      saveData();
+      applyFilters();
+    }
+  });
+
+  filterPriority.addEventListener("change", applyFilters);
+  filterDate.addEventListener("change", applyFilters);
+
+  function applyFilters() {
+    const selectedPriority = filterPriority.value;
+    const selectedDate = filterDate.value;
+    const tasks = listContainer.querySelectorAll("li");
+
+    tasks.forEach(task => {
+      const taskPriority = task.classList.contains("low") ? "low" :
+                           task.classList.contains("medium") ? "medium" : "high";
+      const taskDate = task.getAttribute("data-date");
+
+      const matchPriority = (selectedPriority === "all" || taskPriority === selectedPriority);
+      const matchDate = (!selectedDate || taskDate === selectedDate);
+
+      if (matchPriority && matchDate) {
+        task.style.display = "block";
+      } else {
+        task.style.display = "none";
+      }
+    });
+  }
+
+  function saveData() {
+    localStorage.setItem("data", listContainer.innerHTML);
+  }
+
+  function showTask() {
+    listContainer.innerHTML = localStorage.getItem("data") || "";
+    applyFilters();
+  }
+
+  showTask();
+
+
+  </script>
+
+</body>
+</html>
